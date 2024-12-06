@@ -232,6 +232,8 @@ GEM
       railties (>= 6.0.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    tzinfo-data (1.2024.2)
+      tzinfo (>= 1.0.0)
     view_component (2.83.0)
       activesupport (>= 5.2.0, < 8.0)
       concurrent-ruby (~> 1.0)
@@ -257,6 +259,7 @@ DEPENDENCIES
   rails (~> 6.1.4)
   sass-rails
   spina (~> 2.6.2)
+  tzinfo-data
   yarn
 
 BUNDLED WITH

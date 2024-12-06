@@ -7,7 +7,7 @@ RUN apk add --no-cache \
   nodejs \
   postgresql-client \
   postgresql-dev \  
-  libc6-compat    
+  libc6-compat      
 
 # Set working directory
 WORKDIR /app
@@ -18,6 +18,12 @@ COPY . .
 # Add gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
+
+# Initialize PostgreSQL and create the 'spina_app' database
+RUN su postgres -c 'initdb -D /var/lib/postgresql/data' && \
+    su postgres -c 'pg_ctl -D /var/lib/postgresql/data -l logfile start' && \
+    sleep 5 && \
+    psql -U postgres -c 'CREATE DATABASE spina_app;'
 
 # Configure a non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
