@@ -2,17 +2,18 @@
 FROM ruby:3.2.6-alpine
 
 # Install system dependencies
-RUN apk add --no-cache build-base nodejs postgresql-client yarn
+RUN apk add --no-cache \
+  build-base \
+  nodejs \
+  postgresql-client \
+  postgresql-dev \  
+  libc6-compat    
 
 # Set working directory
 WORKDIR /app
 
 # Copy the rest of the source code
-COPY . .  # Movido para cima
-
-# Install Javascript dependencies
-COPY package.json yarn.lock ./
-RUN yarn install
+COPY . .
 
 # Add gems
 COPY Gemfile Gemfile.lock ./
