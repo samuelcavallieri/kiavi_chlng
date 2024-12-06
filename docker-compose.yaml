@@ -1,17 +1,15 @@
-version: "3.9"
 services:
   web:
     build: .
     ports:
       - "3000:3000"
     volumes:
-      - .:/app:cached
+      - .:/app
     depends_on:
       - db
     environment:
       RAILS_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@db:5432/spina_app
-    # Automatically restarts the container in case of failure
     restart: unless-stopped
 
   db:
@@ -21,5 +19,6 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
 volumes:
   postgres_data:
