@@ -1,4 +1,3 @@
-# Use an official Ruby base image with Alpine Linux
 FROM ruby:3.2.6-alpine
 
 # Install system dependencies
@@ -6,31 +5,27 @@ RUN apk add --no-cache \
   build-base \
   nodejs \
   postgresql-client \
-  postgresql-dev \  
-  libc6-compat      
+  libc6-compat \
+  postgresql-dev
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy the rest of the source code
-COPY . .
-
-# Add gems
+# Copy Gemfile and Gemfile.lock and install gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
-# Initialize PostgreSQL and create the 'spina_app' database
-RUN su postgres -c 'initdb -D /var/lib/postgresql/data' && \
-    su postgres -c 'pg_ctl -D /var/lib/postgresql/data -l logfile start' && \
-    sleep 5 && \
-    psql -U postgres -c 'CREATE DATABASE spina_app;'
+# Copy the entrypoint script and fix potential line-ending issues
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+    && sed -i 's/\r$//' /entrypoint.sh
 
-# Configure a non-root user
+# Create a non-root user (appuser)
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-# Expose the port
+# Expose port 3000
 EXPOSE 3000
 
-# Start the server
-CMD ["rails", "server", "-b", "0.0.0.0"]
+# Set the entrypoint script
+ENTRYPOINT ["/entrypoint.sh"]

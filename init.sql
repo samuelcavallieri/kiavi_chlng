@@ -1,0 +1,2 @@
+CREATE DATABASE spina_app;
+GRANT ALL PRIVILEGES ON DATABASE spina_app TO postgres;
