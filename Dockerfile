@@ -6,26 +6,31 @@ RUN apk add --no-cache \
   nodejs \
   postgresql-client \
   libc6-compat \
-  postgresql-dev
+  postgresql-dev \
+  bash \
+  git \
+  yarn \
+  linux-headers 
 
-# Set the working directory
-WORKDIR /app
+# Set the working directory 
+WORKDIR /app 
 
-# Copy Gemfile and Gemfile.lock and install gems
+# Copy the Gemfile and install gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
-# Copy the entrypoint script and fix potential line-ending issues
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh \
-    && sed -i 's/\r$//' /entrypoint.sh
 
-# Create a non-root user (appuser)
+RUN mkdir -p /app/tmp/cache \
+    && chmod -R 777 /app/tmp
+
+# Copy the entrypoint script
+COPY entrypoint.sh /entrypoint.sh 
+RUN chmod +x /entrypoint.sh
+
+# Configure a non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-# Expose port 3000
 EXPOSE 3000
 
-# Set the entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]

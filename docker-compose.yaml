@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   web:
     build: .
@@ -5,20 +7,47 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
+      - bundle_cache:/usr/local/bundle
+      - node_modules:/app/node_modules
+      - tmp_data:/app/tmp
     depends_on:
       - db
     environment:
       RAILS_ENV: development
       DATABASE_URL: postgresql://postgres@db:5432/spina_app
+      REDIS_URL: redis://redis:6379/1
+      RAILS_LOG_TO_STDOUT: "true"
     restart: unless-stopped
-    command: ["/bin/sh", "-c", "bundle install && rails generate spina:install && rails db:migrate && rails s -b 0.0.0.0"]
+    command: >
+      bash -c "
+        rm -f tmp/pids/server.pid &&
+        bundle install &&
+        bundle exec rails generate spina:install &&
+        bundle exec rails db:migrate &&
+        bundle exec rails s -b 0.0.0.0
+      "
 
   db:
     image: postgres:14-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: spina_app
       POSTGRES_INITDB_ARGS: --encoding=UTF-8
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:
+  redis_data:
+  bundle_cache:
+  node_modules:
+  tmp_data:
