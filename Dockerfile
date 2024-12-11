@@ -1,36 +1,34 @@
-FROM ruby:3.2.6-alpine
+# Use Ruby 3.2.6 as the base image
+FROM ruby:3.2.6
 
 # Install system dependencies
-RUN apk add --no-cache \
-  build-base \
-  nodejs \
-  postgresql-client \
-  libc6-compat \
-  postgresql-dev \
-  bash \
-  git \
-  yarn \
-  linux-headers 
+RUN apt-get update -qq && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    curl \
+    imagemagick \
+    yarn \
+    gcc \
+    make \
+    && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+    && apt-get install -y nodejs
+# Set the working directory inside the container
+WORKDIR /app
 
-# Set the working directory 
-WORKDIR /app 
-
-# Copy the Gemfile and install gems
+# Copy Gemfile and install Ruby dependencies
 COPY Gemfile Gemfile.lock ./
-RUN bundle install
+RUN gem install bundler && bundle install
 
+# Copy the rest of the application code
+COPY . .
 
-RUN mkdir -p /app/tmp/cache \
-    && chmod -R 777 /app/tmp
+# Copy the entrypoint script and make it executable
+COPY entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
 
-# Copy the entrypoint script
-COPY entrypoint.sh /entrypoint.sh 
-RUN chmod +x /entrypoint.sh
-
-# Configure a non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
-
+# Expose the default Rails port
 EXPOSE 3000
 
-ENTRYPOINT ["/entrypoint.sh"]
+# Use the entrypoint script and set the default command to start the Rails server
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["rails", "server", "-b", "0.0.0.0"]

@@ -1,53 +1,23 @@
 version: '3.8'
-
 services:
   web:
-    build: .
+    build: .  # Build from the Dockerfile in the current directory
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Map Rails server port to the host
     volumes:
-      - .:/app
-      - bundle_cache:/usr/local/bundle
-      - node_modules:/app/node_modules
-      - tmp_data:/app/tmp
-    depends_on:
-      - db
+      - ".:/app"  # Mount the local app directory into the container
     environment:
-      RAILS_ENV: development
-      DATABASE_URL: postgresql://postgres@db:5432/spina_app
-      REDIS_URL: redis://redis:6379/1
-      RAILS_LOG_TO_STDOUT: "true"
-    restart: unless-stopped
-    command: >
-      bash -c "
-        rm -f tmp/pids/server.pid &&
-        bundle install &&
-        bundle exec rails generate spina:install &&
-        bundle exec rails db:migrate &&
-        bundle exec rails s -b 0.0.0.0
-      "
+      DATABASE_URL: postgres://postgres:password@db:5432/spina_development
+    depends_on:
+      - db  # Ensure the database service is ready before starting
 
   db:
-    image: postgres:14-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    image: postgres:13  # Use PostgreSQL 13
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_DB: spina_app
-      POSTGRES_INITDB_ARGS: --encoding=UTF-8
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:7-alpine
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
+      - db_data:/var/lib/postgresql/data  # Persist database data
 
 volumes:
-  postgres_data:
-  redis_data:
-  bundle_cache:
-  node_modules:
-  tmp_data:
+  db_data:  # Define a named volume for database persistence
