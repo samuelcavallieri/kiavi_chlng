@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  web:
+    build: .  # Build from the Dockerfile in the current directory
+    ports:
+      - "3000:3000"  # Map Rails server port to the host
+    volumes:
+      - ".:/app"  # Mount the local app directory into the container
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/spina_development
+    depends_on:
+      - db  # Ensure the database service is ready before starting
+
+  db:
+    image: postgres:13  # Use PostgreSQL 13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/postgresql/data  # Persist database data
+
+volumes:
+  db_data:  # Define a named volume for database persistence
